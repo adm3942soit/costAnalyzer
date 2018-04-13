@@ -1,0 +1,162 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.12.RELEASE'
+		vaadinVersion = '8.0.0'
+	}
+	repositories {
+		mavenCentral()
+		maven { url "https://repo.spring.io/libs-milestone" }
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+	dependencies {
+		classpath("com.devsoap.plugin:gradle-vaadin-plugin:1.3.1")
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: "com.devsoap.plugin.vaadin"
+
+jar {
+	baseName = rootProject.name
+	version = '1.0.0'
+}
+vaadin {
+    version '8.0.0'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+repositories {
+	mavenCentral()
+	maven { url "http://maven.vaadin.com/vaadin-addons" }
+	maven { url "https://mvnrepository.com/"}
+}
+def libs = [
+		login: fileTree(dir: 'lib', include: '*.jar'),
+        menu: fileTree(dir: 'lib/menu', include: '*.jar'),
+		json: fileTree(dir: 'lib/json', include: '*.jar'),
+		gwt:fileTree(dir: 'lib/gwt', include: '*.jar'),
+		crud:fileTree(dir: 'lib/crud', include: '*.jar'),
+		msgbox:fileTree(dir: 'lib/message', include: '*.jar'),
+		upload:fileTree(dir: 'lib/uploader', include: '*.jar'),
+		file:fileTree(dir: 'lib/file', include: '*.jar'),
+		url:fileTree(dir: 'lib/url', include: '*.jar')
+]
+configurations {
+	compile.exclude module: "spring-boot-starter-tomcat"
+}
+
+dependencies {
+    compile('org.projectlombok:lombok:1.16.10')
+	compile('ma.glasnost.orika:orika-core:1.4.3')
+	compile('com.google.guava:guava:18.0')
+	compile ('org.apache.commons:commons-lang3:3.5')
+	compile group: 'javax.validation', name: 'validation-api', version: '2.0.0.Final'
+
+	compile group: 'joda-time', name: 'joda-time', version: '2.9.9'
+
+	compile ('javax.servlet:javax.servlet-api:3.1.0')
+
+	/*vaadin*/
+	compile("com.vaadin:vaadin-compatibility-server:${vaadinVersion}")
+	compile("com.vaadin:vaadin-compatibility-client:${vaadinVersion}")
+	compile ("com.vaadin:vaadin-compatibility-client-compiled:${vaadinVersion}")
+	compile ("com.vaadin:vaadin-client-compiler:${vaadinVersion}")
+
+	compile ("com.vaadin:vaadin-compatibility-shared:${vaadinVersion}")
+	compile ("com.vaadin:vaadin-compatibility-themes:${vaadinVersion}")
+	compile ("com.vaadin:vaadin-themes:${vaadinVersion}")
+	compile libs.login
+	compile libs.json
+	compile libs.menu
+	compile libs.url
+	compile libs.msgbox
+	compile libs.crud
+	compile libs.upload
+	compile libs.file
+
+    /*Spring boot*/
+	compile('org.springframework.boot:spring-boot-starter-data-jpa')
+	compile('org.springframework.boot:spring-boot-starter-data-rest')
+	compile('com.vaadin:vaadin-spring-boot-starter:2.0.1')
+	compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
+		exclude module: "spring-boot-starter-tomcat"
+	}
+	compile('com.maxmind.geoip2:geoip2:2.8.1')
+
+	runtime('mysql:mysql-connector-java')
+
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile('ma.glasnost.orika:orika-core:1.4.3')
+}
+configurations.all {
+	resolutionStrategy {
+		failOnVersionConflict()
+		force 'com.google:guava:18.0',
+		        'org.ow2.asm:asm:5.1',
+				'org.ow2.asm:asm-tree:5.1',
+				'org.ow2.asm:asm-commons:5.1',
+				'com.vaadin:vaadin-spring-boot-starter:2.0.0',
+				'com.vaadin:vaadin-spring-boot-starter:2.0.1',
+				'org.projectlombok:lombok:1.16.10',
+				'com.fasterxml.jackson.core:jackson-databind:2.8.1',
+				'com.fasterxml.jackson.core:jackson-core:2.8.1',
+				'com.fasterxml.jackson.core:jackson-annotations:2.8.1'
+		//  *replace existing forced modules with new ones:
+		forcedModules = ['com.google:guava:18.0',
+						 'org.ow2.asm:asm:5.1',
+						 'org.ow2.asm:asm-tree:5.1',
+						 'org.ow2.asm:asm-commons:5.1',
+				         'com.vaadin:vaadin-spring-boot-starter:2.0.0',
+						 'com.vaadin:vaadin-spring-boot-starter:2.0.1',
+						 'org.projectlombok:lombok:1.16.10',
+						 'com.fasterxml.jackson.core:jackson-databind:2.8.1',
+						 'com.fasterxml.jackson.core:jackson-core:2.8.1',
+						 'com.fasterxml.jackson.core:jackson-annotations:2.8.1'
+		]
+	}
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		if (details.requested.group + ":" + details.requested.name == 'com.google:guava') {
+			details.useVersion "18.0"
+			details.useTarget "com.google:guava:18.0"
+		}
+	}
+}
+configurations.all {
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		if (details.requested.group == 'org.apache.tomcat.embed') {
+			details.useVersion '8.0.3'
+		}
+	}
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
+	}
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': 'com.adonis.costAnalyzerApplication'
+	}
+	from ("src/main/webapp") {
+		into ("BOOT-INF/classes/app") // It is actually located under the "BOOT-INF/classes"
+	}
+	from 'src/main/webapp', sourceSets.main.output
+	// Compile theme and widgetset before creating jar
+	dependsOn 'vaadinCompile', 'vaadinThemeCompile'
+	// Sprinkle some spring boot sugar on the jar to make it runnable
+	finalizedBy bootRepackage
+//	zip64 = true
+//	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+springBoot {
+	mainClass = "com.adonis.costAnalyzer.CostAnalyzerApplication"
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '4.2'
+}

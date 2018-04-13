@@ -1,0 +1,93 @@
+package com.adonis.costAnalyzer.ui;
+
+import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Widgetset;
+import com.vaadin.navigator.Navigator;
+import com.vaadin.server.Responsive;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.spring.annotation.SpringUI;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.themes.ValoTheme;
+
+import javax.annotation.PostConstruct;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+
+/**
+ * Created by oksdud on 03.04.2017.
+ */
+@SpringUI
+@Theme("demo")
+@Widgetset("AppWidgetset")
+
+public class MainUI extends UI {
+
+//    @Autowired
+//    public PersonService service;
+    private MainScreen mainScreen;
+//    private AccessControl accessControl = new BasicAccessControl();
+
+    @PostConstruct
+    void load() {
+//        if(service.findTotalCustomer()==0) {
+//            service.loadData();
+//        }
+//
+//        personView = new PersonUI(service, false, null);
+//        loginView = new LoginView(service, new LoginView.LoginListener() {
+//            @Override
+//            public void loginSuccessful() {
+//                showMainView();
+//            }
+//        });
+//        registrationUI = new RegistrationUI(service);
+
+//        personsCrudView = new PersonsCrudView(service);
+        mainScreen = new MainScreen(MainUI.this);
+    }
+
+
+    @Override
+    protected void init(VaadinRequest request) {
+        Responsive.makeResponsive(this);
+
+        setLocale(request.getLocale());
+        getPage().setTitle("Cost Analyzer");
+        new Navigator(this, this);
+//        getNavigator().addView(LoginView.NAME, loginView);
+//        getNavigator().addView(RegistrationUI.NAME, registrationUI);
+//        getNavigator().addView(PersonUI.NAME, personView);
+        getNavigator().addView(MainScreen.NAME, mainScreen);
+//        getNavigator().addView(PersonsCrudView.NAME, personsCrudView);
+//        if (!accessControl.isUserSignedIn()) {
+//            getNavigator().navigateTo(LoginView.NAME);
+//        } else {
+//            showMainView();
+//        }
+
+
+    }
+
+    protected void showMainView() {
+        addStyleName(ValoTheme.UI_WITH_MENU);
+        getNavigator().navigateTo(MainScreen.NAME);
+    }
+
+    @Override
+    public void forEach(Consumer<? super Component> action) {
+
+    }
+
+    @Override
+    public Spliterator<Component> spliterator() {
+        return null;
+    }
+
+
+    @Override
+    public void markAsDirty() {
+
+    }
+
+}
